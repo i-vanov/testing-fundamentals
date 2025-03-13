@@ -2,7 +2,7 @@ import { component$ } from "@builder.io/qwik";
 import { routeLoader$, useLocation } from "@builder.io/qwik-city";
 
 import type { paths } from "@octokit/openapi-types";
-import { GithubApi } from "../../github-api";
+import { GithubApi } from "./github-api";
 
 export const useRepository = routeLoader$(async ({ params, env }) => {
   const user = params.user;

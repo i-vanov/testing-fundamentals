@@ -17,6 +17,7 @@ export class GithubApi {
           "Bearer " + this.token;
       }
     
+      //Dependency
       const response = await fetch(`https://api.github.com/repos/${user}/${repo}`, {
         headers,
       });
