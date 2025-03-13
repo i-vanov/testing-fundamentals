@@ -1,14 +1,39 @@
-import { describe, it } from 'vitest';
-import { GithubApi } from './github-api';
+import { describe, it, vi } from 'vitest';
+import { Fetch, GithubApi } from './github-api';
 
 describe('github-api', () => {
     describe('should get a repository', () => {
         it('should return repository information', async({expect}) => {
-            const api = new GithubApi(undefined);
-            const response = await api.getRepository('mhevery', 'qwik');
-            expect(response).toMatchSnapshot();
+            // create a helper mocking function
+            const fetchMock = vi.fn<Parameters<Fetch>, ReturnType<Fetch>>(mockPromise);
+            // call the API with the mock function
+            const api = new GithubApi("TOKEN", fetchMock);
+            const responsePromise = api.getRepository('USERNAME', 'REPOSITORY');
+            expect(fetchMock).toHaveBeenCalled();
+            expect(fetchMock).toHaveBeenCalledWith(
+             "https://api.github.com/repos/USERNAME/REPOSITORY",
+                {headers: {
+                    "User-Agent": "Qwik Workshop",
+                    "X-GitHub-Api-Version": "2022-11-28",
+                    Authorization: "Bearer TOKEN",
+                },
+                });
+                fetchMock.mock.results[0].value.resolve(new Response('"RESPONSE"'))
+                expect(await responsePromise).toEqual("RESPONSE");
         });
 
         it.todo('should timeout after x seconds with timeout response', () => {})
     })
 });
+
+function mockPromise<T>() {
+    let resolve!: (value: T) => void;
+    let reject!: (error: any) => void;
+    const promise = new Promise((res, rej) => {
+        resolve = res;
+        reject = rej;
+    }) as Promise<T> & { resolve: typeof resolve; reject: typeof reject };
+    promise.resolve = resolve;
+    promise.reject = reject;
+    return promise;
+}
