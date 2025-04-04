@@ -1,4 +1,4 @@
-import { describe, it, Mock, vi } from 'vitest';
+import { describe, expect, it, Mock, vi } from 'vitest';
 import { delay, Fetch, GithubApi } from './github-api';
 import { number } from 'valibot';
 import { beforeEach } from 'vitest';
@@ -49,8 +49,27 @@ describe('github-api', () => {
                     response: "timeout",
                 });
         });
-        })
     });
+
+    describe("getRepositories", () => {
+        it("should fetch all repositories for a user", async ({ expect }) => {
+            const responsePromise = api.getRepositories("USERNAME"); //Stimulus
+            expect(fetchMock).toHaveBeenCalled();
+            expect(fetchMock).toHaveBeenCalledWith(
+                "https://api.github.com/users/USERNAME/repos?per_page=30&page=1",
+                expect.any(Object)
+            );
+
+            const repoSet1 = new Array(30).fill(null).map((_, i) => ({id: i }));
+            fetchMock.mock.results[0].value.resolve(new Response(JSON.stringify(repoSet1)));
+            await delay(0); //yield to the scheduler
+            const repoSet2 = [{id: 31 }];
+            fetchMock.mock.results[1].value.resolve(new Response(JSON.stringify(repoSet2)));
+            expect(await responsePromise).toEqual([...repoSet1, ...repoSet2]);
+        });
+    });
+});
+    
 
 
 function mockPromise<T>() {
